@@ -1,0 +1,51 @@
+<!DOCTYPE html> 
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sentiment Analysis</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Sentiment Analysis Tool</h1>
+        <form id="uploadForm" enctype="multipart/form-data">
+            <input type="file" id="fileInput" name="file" accept=".csv, .xlsx" required>
+            <button type="submit">Upload and Analyze</button>
+        </form>
+        <div id="result" class="result"></div>
+    </div>
+
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const formData = new FormData();
+            const fileInput = document.getElementById('fileInput');
+            formData.append('file', fileInput.files[0]);
+
+            try {
+                const response = await fetch('/analyze', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const resultDiv = document.getElementById('result');
+                if (response.ok) {
+                    const data = await response.json();
+                    resultDiv.innerHTML = `
+                        <h2>Analysis Results</h2>
+                        <p>Positive: ${data.positive.toFixed(2)}</p>
+                        <p>Negative: ${data.negative.toFixed(2)}</p>
+                        <p>Neutral: ${data.neutral.toFixed(2)}</p>
+                    `;
+                } else {
+                    const error = await response.json();
+                    resultDiv.innerHTML = `<p class="error">Error: ${error.error}</p>`;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        });
+    </script>
+</body>
+</html>
